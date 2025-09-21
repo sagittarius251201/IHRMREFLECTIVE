@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IHRM Adventure Game: InnovateTech's Global Leap</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #game-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 5px solid #007bff;
+        }
+
+        h1 {
+            color: #0056b3;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        #options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .option-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-style: italic;
+            background-color: #e9ecef;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .feedback strong {
+           color: #0056b3;
+        }
+
+        #status-bars {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+
+        .status-container {
+            width: 45%;
+        }
+
+        .status-label {
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 20px;
+            width: 50%;
+            background-color: #28a745;
+            transition: width 0.5s ease-in-out;
+            border-radius: 5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+        
+        #morale-progress { background-color: #28a745; }
+        #synergy-progress { background-color: #17a2b8; }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1 id="game-title">InnovateTech's Global Leap</h1>
+    <p id="game-text">Welcome, new Global HR Manager! Your first mission: lead InnovateTech's expansion into the promising market of Zenithia. Your decisions will shape our global future. Ready to begin?</p>
+    
+    <div id="status-bars">
+        <div class="status-container">
+            <div class="status-label">Company Morale</div>
+            <div class="progress-bar">
+                <div id="morale-progress" class="progress">50%</div>
+            </div>
+        </div>
+        <div class="status-container">
+            <div class="status-label">Global Synergy</div>
+            <div class="progress-bar">
+                <div id="synergy-progress" class="progress">50%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="feedback-container"></div>
+
+    <div id="options-container">
+        </div>
+</div>
+
+<script>
+    const gameText = document.getElementById('game-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackContainer = document.getElementById('feedback-container');
+    const moraleProgress = document.getElementById('morale-progress');
+    const synergyProgress = document.getElementById('synergy-progress');
+    
+    let gameState = {
+        morale: 50,
+        synergy: 50,
+    };
+
+    function updateStatusBars() {
+        // Clamp values between 0 and 100
+        gameState.morale = Math.max(0, Math.min(100, gameState.morale));
+        gameState.synergy = Math.max(0, Math.min(100, gameState.synergy));
+
+        moraleProgress.style.width = gameState.morale + '%';
+        moraleProgress.textContent = gameState.morale + '%';
+        
+        synergyProgress.style.width = gameState.synergy + '%';
+        synergyProgress.textContent = gameState.synergy + '%';
+    }
+
+    function selectOption(option) {
+        gameState.morale += option.moraleEffect;
+        gameState.synergy += option.synergyEffect;
+        updateStatusBars();
+
+        feedbackContainer.innerHTML = `<div class="feedback">${option.feedback}</div>`;
+        
+        if (option.nextStage) {
+            setTimeout(() => {
+                showStage(option.nextStage);
+            }, 3000); // Wait a bit so the player can read the feedback
+        } else {
+            endGame();
+        }
+    }
+
+    function showStage(stageId) {
+        const stage = gameStages.find(s => s.id === stageId);
+        gameText.textContent = stage.text;
+        
+        if (!stage.isEnd) {
+             feedbackContainer.innerHTML = '';
+        }
+       
+        optionsContainer.innerHTML = '';
+        
+        if (stage.options) {
+            stage.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option.text;
+                button.classList.add('option-btn');
+                button.onclick = () => selectOption(option);
+                optionsContainer.appendChild(button);
+            });
+        }
+    }
+    
+    function endGame() {
+        const totalScore = gameState.morale + gameState.synergy;
+        let title, message;
+        
+        if (totalScore > 150) {
+            title = "IHRM Visionary!";
+            message = "Incredible work! You've masterfully navigated complex cultural and strategic challenges. Your leadership has built a thriving, synergistic global team. InnovateTech is a true multinational success story thanks to you!";
+        } else if (totalScore > 100) {
+            title = "Promising Global Leader";
+            message = "A solid performance! You've successfully launched the Zenithia office, though there were a few bumps along the way. With a bit more cultural sensitivity, you'll be unstoppable. The team is functional and morale is stable.";
+        } else {
+            title = "Cultural Novice";
+            message = "The expansion was a struggle. The Zenithia office is facing low morale and significant cultural clashes. It might be time to review your IHRM frameworks. Remember, a global strategy needs local understanding!";
+        }
+        
+        document.getElementById('game-title').textContent = title;
+        gameText.textContent = message;
+        optionsContainer.innerHTML = '<button class="option-btn" onclick="startGame()">Play Again</button>';
+    }
+
+    function startGame() {
+        gameState = { morale: 50, synergy: 50 };
+        document.getElementById('game-title').textContent = "InnovateTech's Global Leap";
+        updateStatusBars();
+        showStage(1);
+    }
+    
+    const gameStages = [
+        {
+            id: 1,
+            text: 'First, we need a high-level strategy for our Zenithia operations. How will we approach management and company culture? This decision is crucial.',
+            options: [
+                {
+                    text: "Ethnocentric: Send our trusted home-country managers. They know the 'InnovateTech Way' best.",
+                    moraleEffect: -10,
+                    synergyEffect: -15,
+                    nextStage: 2,
+                    feedback: `<strong>IHRM Concept: Ethnocentric Approach.</strong> This ensures strong brand consistency but often leads to cultural friction. Home-country practices may not fit the local context, causing resentment and lower synergy.`
+                },
+                {
+                    text: "Polycentric: Hire local Zenithian managers. They understand the local market and culture.",
+                    moraleEffect: 10,
+                    synergyEffect: 5,
+                    nextStage: 3,
+                    feedback: `<strong>IHRM Concept: Polycentric Approach.</strong> Excellent for local adaptation! This boosts morale in the host country, but risks creating a disconnect between headquarters and the local office.`
+                },
+                {
+                    text: "Geocentric: Find the best managers for the job, regardless of their nationality.",
+                    moraleEffect: 5,
+                    synergyEffect: 15,
+                    nextStage: 4,
+                    feedback: `<strong>IHRM Concept: Geocentric Approach.</strong> The ideal for a truly global company. This approach builds a rich, diverse talent pool and fosters high global synergy, though it can be more complex and costly to implement.`
+                }
+            ]
+        },
+        {
+            id: 2, // Result of Ethnocentric
+            text: 'Six months in, our home-country manager reports low productivity. The Zenithian team seems unmotivated and complains about his "dictatorial" style. How do you advise him?',
+            options: [
+                {
+                    text: "Tell him to enforce company rules more strictly. They need to adapt to us.",
+                    moraleEffect: -20,
+                    synergyEffect: -15,
+                    nextStage: 5,
+                    feedback: `<strong>Hofstede's Dimensions: High vs. Low Power Distance.</strong> Zenithia is a high power distance culture (respect for hierarchy), but your manager's direct, low power distance style is seen as disrespectful, not efficient. This damages morale.`
+                },
+                {
+                    text: "Arrange cross-cultural training on Zenithian communication styles and leadership expectations.",
+                    moraleEffect: 15,
+                    synergyEffect: 20,
+                    nextStage: 5,
+                    feedback: `<strong>IHRM Solution: Cross-Cultural Training.</strong> A great move! By investing in cultural intelligence, you bridge the gap between different work styles and show respect for the local culture, boosting both morale and synergy.`
+                }
+            ]
+        },
+        {
+            id: 3, // Result of Polycentric
+            text: 'The local Zenithian manager is a star performer, but HQ complains she makes decisions too slowly, always consulting her entire team before acting. What should you do?',
+            options: [
+                {
+                    text: "Instruct her to adopt HQ's fast, top-down decision-making style immediately.",
+                    moraleEffect: -15,
+                    synergyEffect: -10,
+                    nextStage: 5,
+                    feedback: `<strong>Hofstede's Dimensions: Individualism vs. Collectivism.</strong> You're imposing an individualistic value (fast, single-leader decisions) on a collectivist culture. This undermines the local manager and demotivates her team.`
+                },
+                {
+                    text: "Explain HQ's need for speed but create a hybrid process that allows for team input on a tighter schedule.",
+                    moraleEffect: 10,
+                    synergyEffect: 15,
+                    nextStage: 5,
+                    feedback: `<strong>IHRM Solution: Strategic Alignment.</strong> Perfect! You respect the local collectivist culture while aligning it with the global company's strategic needs. This creates a stronger, more integrated operation.`
+                }
+            ]
+        },
+        {
+            id: 4, // Result of Geocentric
+            text: 'Your diverse management team is performing well, but there are clashes over work-life balance. The manager from a "restraint" culture sees the manager from an "indulgence" culture as lazy. How do you intervene?',
+            options: [
+                {
+                    text: "Create a standardized global policy on working hours and overtime.",
+                    moraleEffect: 5,
+                    synergyEffect: -5,
+                    nextStage: 5,
+                    feedback: `<strong>IHRM Challenge: Standardization vs. Localization.</strong> A single global policy is fair on paper, but can feel restrictive and ignore cultural norms about work-life balance, slightly hurting synergy.`
+                },
+                {
+                    text: "Facilitate a workshop on cultural perspectives of work, focusing on results rather than hours worked.",
+                    moraleEffect: 15,
+                    synergyEffect: 20,
+                    nextStage: 5,
+                    feedback: `<strong>Hofstede's Dimensions: Indulgence vs. Restraint.</strong> Excellent! You're addressing the root cultural misunderstanding and shifting the focus to what truly matters: performance. This builds mutual respect and strong synergy.`
+                }
+            ]
+        },
+        {
+            id: 5,
+            isEnd: true,
+            text: "Final challenge: The year-end performance review is here. Your top Zenithian engineer has met all his targets, but his manager (from HQ) feels his communication is too indirect and not assertive enough.",
+            options: [
+                 {
+                    text: "Advise the manager to give direct, blunt feedback focusing on the weaknesses, as is common at HQ.",
+                    moraleEffect: -20,
+                    synergyEffect: -10,
+                    feedback: `<strong>Performance Management Across Cultures:</strong> This approach ignores that Zenithia is a high-context culture where indirect communication is the norm. The feedback will likely cause the employee to 'lose face' and become demotivated.`
+                },
+                {
+                    text: "Coach the manager to use the SBI (Situation-Behavior-Impact) model, providing specific examples in a respectful, inquiry-led conversation.",
+                    moraleEffect: 20,
+                    synergyEffect: 15,
+                    feedback: `<strong>Best Practice in Performance Management:</strong> This is a globally effective feedback technique. It focuses on objective behaviors and their impact, minimizing cultural misinterpretation and fostering development.`
+                }
+            ]
+        }
+    ];
+
+    // Start the game when the page loads
+    startGame();
+</script>
+
+</body>
+</html>
